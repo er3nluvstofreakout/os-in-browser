@@ -24,12 +24,11 @@ jobs:
           - macos-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
-          cache: npm
+          node-version: 24
 
       - name: Install
         run: npm install
@@ -43,7 +42,7 @@ jobs:
           mv out/make/zip/*/*/*.zip \
             "${{ runner.os }}-${{ runner.arch }}.zip"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ runner.os }}-${{ runner.arch }}
           path: ${{ runner.os }}-${{ runner.arch }}.zip
@@ -53,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: releases
           merge-multiple: true
