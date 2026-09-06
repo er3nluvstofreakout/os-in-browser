@@ -2,6 +2,14 @@
 	"name": "os-in-browser",
 	"version": "1.0.0",
 	"main": "app/index.html",
+	"app": {
+		"name": "os-in-browser",
+		"icon": "",
+		"LSApplicationCategoryType": "public.app-category.utilities",
+		"CFBundleIdentifier": "com.osinbrowser.app",
+		"CFBundleName": "os-in-browser",
+		"CFBundleDisplayName": "os-in-browser"
+	},
 	"type": "module",
 	"chromium-args": "--enable-logging=stderr --disable-gpu --no-sandbox",
 	"dependencies": {
