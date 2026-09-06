@@ -4,7 +4,7 @@
 	"main": "app/index.html",
 	"app": {
 		"name": "os-in-browser",
-		"icon": "",
+		"icon": "awef",
 		"LSApplicationCategoryType": "public.app-category.utilities",
 		"CFBundleIdentifier": "com.osinbrowser.app",
 		"CFBundleName": "os-in-browser",
