@@ -34,16 +34,10 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            libx11-dev \
-            libxtst-dev \
-            libxfixes-dev
+          sudo apt-get install -y libx11-dev libxtst-dev libxfixes-dev
 
-      - name: Install
-        run: npm install
-
-      - name: Build
-        run: npm run make
+      - run: npm install
+      - run: npm run make
 
       - name: Rename
         shell: bash
