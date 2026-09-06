@@ -20,5 +20,8 @@
 	},
 	"devDependencies": {
 		"node-addon-api": "^8.9.1"
+	},
+	"scripts": {
+		"build": "nwbuild --mode=build --glob=false ."
 	}
 }
