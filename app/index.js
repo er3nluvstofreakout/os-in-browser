@@ -1,4 +1,3 @@
-// NWESM doesn't work .. :(, Do I use Electron?
 import ServerPeer from "./ServerPeer.js"; // doesn't matter where you put it, this always runs first, so might as well put it at the top
 
 const { Octokit } = require("@octokit/action");

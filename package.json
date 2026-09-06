@@ -1,17 +1,14 @@
 {
 	"name": "os-in-browser",
 	"version": "1.0.0",
-	"main": "app/index.html",
-	"app": {
-		"name": "os-in-browser",
-		"icon": "awef",
-		"LSApplicationCategoryType": "public.app-category.utilities",
-		"CFBundleIdentifier": "com.osinbrowser.app",
-		"CFBundleName": "os-in-browser",
-		"CFBundleDisplayName": "os-in-browser"
+	"description": "OS in Browser",
+	"main": "electron/index.js",
+	"type": "commonjs",
+	"scripts": {
+		"start": "electron-forge start",
+		"package": "electron-forge package",
+		"make": "electron-forge make"
 	},
-	"type": "module",
-	"chromium-args": "--enable-logging=stderr --disable-gpu --no-sandbox",
 	"dependencies": {
 		"express": "^5.1.0",
 		"express-basic-auth": "^1.2.1",
@@ -19,10 +16,10 @@
 		"@octokit/action": "^8.0.4"
 	},
 	"devDependencies": {
+		"electron": "^38.0.0",
+		"@electron-forge/cli": "^7.11.2",
+		"@electron/rebuild": "^4.0.0",
 		"node-addon-api": "^8.9.1",
-		"nw-builder": "^4.19.0"
-	},
-	"scripts": {
-		"build": "nwbuild --glob=false ."
+		"node-gyp": "^11.4.2"
 	}
 }
