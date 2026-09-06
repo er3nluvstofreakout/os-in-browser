@@ -19,9 +19,10 @@
 		"@octokit/action": "^8.0.4"
 	},
 	"devDependencies": {
-		"node-addon-api": "^8.9.1"
+		"node-addon-api": "^8.9.1",
+		"nw-builder": "^4.19.0"
 	},
 	"scripts": {
-		"build": "nwbuild --mode=build --glob=false ."
+		"build": "nwbuild --glob=false ."
 	}
 }
