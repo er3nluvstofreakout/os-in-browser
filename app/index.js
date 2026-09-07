@@ -7,7 +7,6 @@ const basicAuth = require("express-basic-auth");
 const { setTimeout } = require("node:timers/promises");
 const path = require("node:path");
 const { env, resourcesPath, platform } = require("node:process");
-const { app } = require("electron");
 const { spawn } = require('node:child_process');
 
 const {
