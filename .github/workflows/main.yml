@@ -33,9 +33,6 @@ jobs:
     name: URL
     runs-on: ${{ inputs.os }}
 
-    env:
-      PORT: 8080
-
     environment:
       name: ${{ github.run_id }}
 
@@ -44,59 +41,11 @@ jobs:
       deployments: write
 
     steps:
-      - name: Start tunnel
-        id: tunnel
-        env:
-          METRICS_URL: "localhost:8081"
-        run: |
-          case "$RUNNER_OS" in
-            Windows)
-              CLOUDFLARED=./cloudflared.exe
-
-              curl -fsSL \
-                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe" \
-                -o "${CLOUDFLARED}"
-              ;;
-
-            Linux)
-              CLOUDFLARED=./cloudflared
-
-              curl -fsSL \
-                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64" \
-                -o "${CLOUDFLARED}"
-              ;;
-
-            macOS)
-              CLOUDFLARED=./cloudflared
-
-              curl -fsSL \
-                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz" |
-                tar -xz
-              ;;
-          esac
-
-          chmod +x "${CLOUDFLARED}"
-
-          "${CLOUDFLARED}" tunnel \
-            --metrics="${METRICS_URL}" \
-            --url "http://localhost:${PORT}" \
-            > "$RUNNER_TEMP/cloudflared.log" 2>&1 &
-
-          until JSON="$(curl -sS "${METRICS_URL}/quicktunnel")"; do
-            sleep 1
-          done
-
-          HOSTNAME="$(jq -r '.hostname' <<< "${JSON}")"
-          TUNNEL_URL="https://${HOSTNAME}"
-
-          echo "url=${TUNNEL_URL}" >> "$GITHUB_OUTPUT"
-
       - name: Run remote desktop
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_TOKEN: ${{ github.token }}
           ZIP_NAME: ${{ runner.os }}-${{ runner.arch }}.zip
-          TUNNEL_URL: ${{ steps.tunnel.outputs.url }}
         run: |
           export USERNAME=$(jq -r '.inputs.username // ""' "$GITHUB_EVENT_PATH")
           echo "::add-mask::${USERNAME}"

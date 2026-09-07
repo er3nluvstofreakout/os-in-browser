@@ -5,26 +5,40 @@ const express = require("express");
 const expressWs = require("express-ws");
 const basicAuth = require("express-basic-auth");
 const { setTimeout } = require("node:timers/promises");
-const process = require("node:process");
+const path = require("node:path");
+const { env, resourcesPath, platform } = require("node:process");
+const { app } = require("electron");
+const { spawn } = require('node:child_process');
 
 const {
 	GITHUB_REPOSITORY,
 	GITHUB_SHA,
 	USERNAME,
 	PASSWORD,
-	GITHUB_RUN_ID,
-	PORT,
-	TUNNEL_URL
-} = process.env;
+	GITHUB_RUN_ID
+} = env;
+
+const cloudflaredPath = path.join(
+	resourcesPath,
+	platform === "win32" ? "cloudflared.exe" : "cloudflared"
+);
+
+const port = 8080;
+const metricsPort = 8081;
+
+spawn(cloudflaredPath, [
+	`--metrics=localhost:${metricsPort}`,
+	`--url=localhost:${port}`
+])
 
 const github = new Octokit();
 
 const [owner, repo] = GITHUB_REPOSITORY.split("/");
 
-const app = express();
-expressWs(app);
+const server = express();
+expressWs(server);
 
-app.use(
+server.use(
 	basicAuth({
 		users: {
 			[USERNAME]: PASSWORD
@@ -33,12 +47,12 @@ app.use(
 	})
 );
 
-app.use(express.static("./public"));
+server.use(express.static("./public"));
 
-app.ws("/", (ws, req) => new ServerPeer(ws));
+server.ws("/", (ws, req) => new ServerPeer(ws));
 
-app.listen(PORT, () => {
-	console.log(`Server listening on port ${PORT}`);
+server.listen(port, () => {
+	console.log(`Server listening on port ${port}`);
 });
 
 const [deployment] = await github.paginate(
@@ -54,6 +68,9 @@ const [deployment] = await github.paginate(
 if (!deployment)
 	throw new Error("Deployment not found");
 
+const { hostname } = await waitForJSONEndpoint(`http://localhost:${metricsPort}`);
+const tunnelUrl = `https://${hostname}`;
+
 await github.rest.repos.createDeploymentStatus({
 	owner,
 	repo,
@@ -61,12 +78,24 @@ await github.rest.repos.createDeploymentStatus({
 	deployment_id: deployment.id,
 	state: "in_progress",
 	description: "Remote desktop ready",
-	environment_url: TUNNEL_URL
+	environment_url: tunnelUrl
 });
 
 console.log(`=====================
 YOUR URL IS:
-${TUNNEL_URL}
+${tunnelUrl}
 =====================`)
 
 // bring back uploading artifact for website
+
+async function waitForJSONEndpoint(url, interval = 1000) {
+	while (true) {
+		try {
+			const response = await fetch(url);
+
+			if (response.ok) return response.json();
+		} catch {}
+
+		await setTimeout(interval);
+	}
+}

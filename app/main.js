@@ -44,6 +44,19 @@ app.whenReady().then(() => {
         );
     });
 
+    // session.setPermissionCheckHandler(() => true);
+
+    // session.setPermissionRequestHandler((webContents, permission, callback) => callback(true));
+
+    /*
+     * navigator.mediaDevices.getDisplayMedia()
+     */
+    session.setDisplayMediaRequestHandler((request, callback) => {
+        desktopCapturer.getSources({
+            types: ["screen"]
+        }).then(([source]) => callback({ video: source }));
+    });
+
     /*
      * Load renderer.
      */

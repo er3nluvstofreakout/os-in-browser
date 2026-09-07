@@ -1,4 +1,8 @@
 module.exports = {
+	packagerConfig: {
+		extraResource: ["cloudflared", "cloudflared.exe"]
+	},
+
 	makers: [
 		{
 			name: "@electron-forge/maker-zip",
