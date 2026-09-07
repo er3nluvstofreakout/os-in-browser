@@ -1,6 +1,10 @@
+const cloudflared = process.platform === "win32"
+	? "cloudflared.exe"
+	: "cloudflared";
+
 module.exports = {
 	packagerConfig: {
-		extraResource: ["cloudflared", "cloudflared.exe"]
+		extraResource: [cloudflared]
 	},
 
 	makers: [
