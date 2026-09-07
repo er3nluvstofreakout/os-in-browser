@@ -102,9 +102,7 @@ jobs:
               ;;
 
             macOS)
-              open ./os-in-browser.app
+              open -W ./os-in-browser.app
 
               ;;
           esac
-
-          sleep 21600
