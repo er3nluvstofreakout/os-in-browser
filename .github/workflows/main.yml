@@ -80,8 +80,6 @@ jobs:
             fi
           }
 
-          find . -maxdepth 3 -type f -name 'os-in-browser.exe' -print
-
           case "$RUNNER_OS" in
             Linux)
               sudo apt-get update
