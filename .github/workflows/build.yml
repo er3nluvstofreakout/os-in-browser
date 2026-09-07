@@ -63,25 +63,10 @@ jobs:
               ;;
           esac
 
-      - name: Add cloudflared to app
-        shell: bash
+      - name: Add cloudflared
         run: |
-          case "$RUNNER_OS" in
-            Windows)
-              APP_DIR=$(dirname "$(find out/make -type f -name '*.exe' | head -1)")
-              cp cloudflared.exe "$APP_DIR/"
-              ;;
-
-            Linux)
-              APP_DIR=$(dirname "$(find out/make -type f -name 'os-in-browser' | head -1)")
-              cp cloudflared "$APP_DIR/"
-              ;;
-
-            macOS)
-              APP_DIR=$(dirname "$(find out/make -type f -path '*/Contents/MacOS/os-in-browser' | head -1)")
-              cp cloudflared "$APP_DIR/"
-              ;;
-          esac
+          APP_DIR=$(dirname "$(find out/make -type f \( -name '*.exe' -o -name 'os-in-browser' \) | head -1)")
+          cp cloudflared* "$APP_DIR/"
 
       - name: Rename
         shell: bash
