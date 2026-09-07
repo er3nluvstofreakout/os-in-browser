@@ -51,16 +51,10 @@ app.whenReady().then(() => {
     /*
      * navigator.mediaDevices.getDisplayMedia()
      */
-    session.setDisplayMediaRequestHandler(async (request, callback) => {
-        try {
-            const [source] = await desktopCapturer.getSources({
-                types: ["screen"]
-            });
-
-            callback(source ? { video: source } : {});
-        } catch {
-            callback({});
-        }
+    session.setDisplayMediaRequestHandler((request, callback) => {
+        desktopCapturer.getSources({
+            types: ["screen"]
+        }).then(([source]) => callback({ video: source }));
     });
 
     /*
