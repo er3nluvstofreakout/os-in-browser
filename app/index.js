@@ -8,6 +8,7 @@ const { setTimeout } = require("node:timers/promises");
 const path = require("node:path");
 const { env, resourcesPath, platform } = require("node:process");
 const { spawn } = require('node:child_process');
+const fs = require("node:fs");
 
 const {
 	GITHUB_REPOSITORY,
