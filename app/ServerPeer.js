@@ -1,12 +1,21 @@
 console.log("1");
 
 const nativeApis = require("native-apis");
-const { clipboard } = require("electron");
+const { clipboard, desktopCapturer } = require("electron");
 console.log("2");
 
-const stream = await navigator.mediaDevices.getDisplayMedia({
-	video: true,
-	audio: false
+const [source] = await desktopCapturer.getSources({
+    types: ["screen"]
+});
+
+const stream = await navigator.mediaDevices.getUserMedia({
+    audio: false,
+    video: {
+        mandatory: {
+            chromeMediaSource: "desktop",
+            chromeMediaSourceId: source.id
+        }
+    }
 });
 
 console.log("3");
