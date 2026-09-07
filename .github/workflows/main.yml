@@ -43,8 +43,6 @@ jobs:
     steps:
       - name: Run remote desktop
         env:
-          PORT: 8080
-          METRICS_URL: "localhost:8081"
           GH_TOKEN: ${{ github.token }}
           GITHUB_TOKEN: ${{ github.token }}
           ZIP_NAME: ${{ runner.os }}-${{ runner.arch }}.zip
@@ -79,19 +77,16 @@ jobs:
               icewm-session &
 
               OS_IN_BROWSER=./os-in-browser
-              CLOUDFLARED=./cloudflared
 
               ;;
 
             Windows)
               OS_IN_BROWSER=./os-in-browser.exe
-              CLOUDFLARED=./cloudflared.exe
 
               ;;
 
             macOS)
               OS_IN_BROWSER=./os-in-browser.app/Contents/MacOS/os-in-browser
-              CLOUDFLARED=./cloudflared
 
               ;;
           esac
@@ -104,14 +99,5 @@ jobs:
             --pattern "${ZIP_NAME}"
 
           unzip -q "${ZIP_NAME}"
-
-          "${CLOUDFLARED}" tunnel --metrics="${METRICS_URL}" --url "http://localhost:${PORT}"
-
-          until JSON="$(curl -sS "${METRICS_URL}/quicktunnel")"; do # "$CLOUDFLARED" --metrics"${METRICS_URL} ready
-            sleep 1
-          done
-
-          HOSTNAME="$(jq -r '.hostname' <<< "${JSON}")"
-          TUNNEL_URL="https://${HOSTNAME}"
 
           "${OS_IN_BROWSER}"

@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+defaults:
+  run:
+    shell: bash --noprofile --norc -euo pipefail {0}
+
 jobs:
   build:
     name: ${{ matrix.os }}
@@ -36,44 +40,38 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libx11-dev libxtst-dev libxfixes-dev
 
-      - run: npm install
-
-      - run: npm run make
+      - name: Install dependencies
+        run: npm install
 
       - name: Download cloudflared
-        shell: bash
         run: |
           case "$RUNNER_OS" in
             Windows)
-              curl -L \
+              curl -fsSL \
                 "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe" \
                 -o cloudflared.exe
               ;;
 
             Linux)
-              curl -L \
+              curl -fsSL \
                 "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64" \
                 -o cloudflared
               ;;
 
             macOS)
-              curl -L \
+              curl -fsSL \
                 "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz" |
                 tar -xz
               ;;
           esac
 
-      - name: Add cloudflared
-        run: |
-          find out/make -type f | head -20
-          APP_DIR=$(dirname "$(find out/make -type f \( -name '*.exe' -o -name 'os-in-browser' \) | head -1)")
-          cp cloudflared* "$APP_DIR/"
+      - name: Make
+        run: npm run make
 
       - name: Rename
-        shell: bash
         run: |
           mv out/make/zip/*/*/*.zip \
-            "${{ runner.os }}-${{ runner.arch }}.zip"
+            "${RUNNER_OS}-${RUNNER_ARCH}.zip"
 
       - uses: actions/upload-artifact@v7
         with:

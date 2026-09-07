@@ -5,16 +5,31 @@ const express = require("express");
 const expressWs = require("express-ws");
 const basicAuth = require("express-basic-auth");
 const { setTimeout } = require("node:timers/promises");
+const path = require("node:path");
+const process = require("node:process");
 
 const {
 	GITHUB_REPOSITORY,
 	GITHUB_SHA,
 	USERNAME,
 	PASSWORD,
-	GITHUB_RUN_ID,
-	TUNNEL_URL,
-	PORT
+	GITHUB_RUN_ID
 } = process.env;
+
+const cloudflaredPath = path.join(
+	process.resourcesPath,
+	process.platform === "win32"
+		? "cloudflared.exe"
+		: "cloudflared"
+);
+
+const port = 8080;
+const metricsPort = "localhost:";
+
+spawn(cloudflaredPath, [
+	`--metrics=localhost:${metricsPort}`,
+	`--url=localhost:${port}`
+])
 
 const github = new Octokit();
 
@@ -36,8 +51,8 @@ app.use(express.static("./public"));
 
 app.ws("/", (ws, req) => new ServerPeer(ws));
 
-app.listen(PORT, () => {
-	console.log(`Server listening on port ${PORT}`);
+app.listen(port, () => {
+	console.log(`Server listening on port ${port}`);
 });
 
 const [deployment] = await github.paginate(
@@ -53,6 +68,9 @@ const [deployment] = await github.paginate(
 if (!deployment)
 	throw new Error("Deployment not found");
 
+const { hostname } = await waitForJSONEndpoint(`http://localhost:${metricsPort}`);
+const tunnelUrl = `https://${hostname}`;
+
 await github.rest.repos.createDeploymentStatus({
 	owner,
 	repo,
@@ -60,12 +78,24 @@ await github.rest.repos.createDeploymentStatus({
 	deployment_id: deployment.id,
 	state: "in_progress",
 	description: "Remote desktop ready",
-	environment_url: `https://${TUNNEL_URL}`
+	environment_url: tunnelUrl
 });
 
 console.log(`=====================
 YOUR URL IS:
-https://${TUNNEL_URL}
+${tunnelUrl}
 =====================`)
 
 // bring back uploading artifact for website
+
+async function waitForJSONEndpoint(url, interval = 1000) {
+	while (true) {
+		try {
+			const response = await fetch(url);
+
+			if (response.ok) return response.json();
+		} catch {}
+
+		await setTimeout(interval);
+	}
+}
