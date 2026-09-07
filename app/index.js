@@ -25,10 +25,25 @@ const cloudflaredPath = path.join(
 const port = 8080;
 const metricsPort = 8081;
 
-spawn(cloudflaredPath, [
+console.log("cloudflaredPath:", cloudflaredPath);
+console.log("exists:", fs.existsSync(cloudflaredPath));
+
+const cloudflared = spawn(cloudflaredPath, [
 	`--metrics=localhost:${metricsPort}`,
 	`--url=localhost:${port}`
 ])
+
+cloudflared.on("error", error => {
+	console.error("cloudflared error:", error);
+});
+
+cloudflared.stdout?.on("data", data => {
+	console.log(`[cloudflared] ${data}`);
+});
+
+cloudflared.stderr?.on("data", data => {
+	console.error(`[cloudflared] ${data}`);
+});
 
 const github = new Octokit({
 	request: {
