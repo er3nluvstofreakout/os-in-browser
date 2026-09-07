@@ -45,8 +45,21 @@ app.whenReady().then(() => {
         );
     });
 
-    session.setPermissionCheckHandler((webContents, permission, requestingOrigin) => (permission === "clipboard-read" || permission === "clipboard-sanitized-write"));
-    session.setPermissionRequestHandler((webContents, permission, callback) => callback(permission === "clipboard-read" || permission === "clipboard-sanitized-write"));
+    session.setPermissionCheckHandler(
+        (webContents, permission) =>
+            permission === "clipboard-read" ||
+            permission === "clipboard-sanitized-write" ||
+            permission === "display-capture"
+    );
+
+    session.setPermissionRequestHandler(
+        (webContents, permission, callback) =>
+            callback(
+                permission === "clipboard-read" ||
+                permission === "clipboard-sanitized-write" ||
+                permission === "display-capture"
+            )
+    );
     /*
      * navigator.mediaDevices.getDisplayMedia()
      */
