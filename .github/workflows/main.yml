@@ -119,6 +119,6 @@ jobs:
               open -W \
                 --stdout /dev/stdout \
                 --stderr /dev/stderr \
-                ./os-in-browser-darwin-arm64/os-in-browser.app
+                ./os-in-browser.app
               ;;
           esac
