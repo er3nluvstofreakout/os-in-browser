@@ -33,58 +33,24 @@ jobs:
 
       - name: Build Linux
         background: true
-        id: linux
         run: |
-          cloudflared="$RUNNER_TEMP/cloudflared-linux"
-
-          curl -fsSL \
-            "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64" \
-            -o "$cloudflared"
-
-          chmod +x "$cloudflared"
-
-          TARGET_PLATFORM=linux \
-          CLOUDFLARED_PATH="$cloudflared" \
-            npm run make -- \
-              --platform=linux \
-              --arch=x64
+          npm run make -- \
+            --platform=linux \
+            --arch=x64
 
       - name: Build Windows
         background: true
-        id: windows
         run: |
-          cloudflared="$RUNNER_TEMP/cloudflared-windows.exe"
-
-          curl -fsSL \
-            "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe" \
-            -o "$cloudflared"
-
-          chmod +x "$cloudflared"
-
-          TARGET_PLATFORM=win32 \
-          CLOUDFLARED_PATH="$cloudflared" \
-            npm run make -- \
-              --platform=win32 \
-              --arch=x64
+          npm run make -- \
+            --platform=win32 \
+            --arch=x64
 
       - name: Build macOS
         background: true
-        id: macos
         run: |
-          dir="$RUNNER_TEMP/cloudflared-macos"
-          mkdir -p "$dir"
-
-          curl -fsSL \
-            "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz" |
-            tar -xz -C "$dir"
-
-          chmod +x "$dir/cloudflared"
-
-          TARGET_PLATFORM=darwin \
-          CLOUDFLARED_PATH="$dir/cloudflared" \
-            npm run make -- \
-              --platform=darwin \
-              --arch=arm64
+          npm run make -- \
+            --platform=darwin \
+            --arch=arm64
 
       - name: Wait for builds
         wait-all:
