@@ -33,9 +33,6 @@ jobs:
     name: URL
     runs-on: ${{ inputs.os }}
 
-    env:
-      PORT: 8080
-
     environment:
       name: ${{ github.run_id }}
 
@@ -49,7 +46,6 @@ jobs:
           PORT: 8080
           METRICS_URL: "localhost:8081"
           GH_TOKEN: ${{ github.token }}
-          TUNNEL_URL: ${{ steps.tunnel.outputs.server }}
           GITHUB_TOKEN: ${{ github.token }}
           ZIP_NAME: ${{ runner.os }}-${{ runner.arch }}.zip
         run: |
@@ -61,13 +57,8 @@ jobs:
 
           case "$RUNNER_OS" in
             Linux)
-              sudo mkdir -p --mode=0755 /usr/share/keyrings
-              curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
-              echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/cloudflared.list
-
               sudo apt-get update
               sudo apt-get install -y --no-install-recommends \
-                cloudflared \
                 icewm \
                 xvfb \
                 libx11-6 \
@@ -88,35 +79,39 @@ jobs:
               icewm-session &
 
               OS_IN_BROWSER=./os-in-browser
+              CLOUDFLARED=./cloudflared
 
               ;;
 
             Windows)
-              choco install -y cloudflared
               OS_IN_BROWSER=./os-in-browser.exe
+              CLOUDFLARED=./cloudflared.exe
 
               ;;
 
             macOS)
-              brew install cloudflared
               OS_IN_BROWSER=./os-in-browser.app/Contents/MacOS/os-in-browser
+              CLOUDFLARED=./cloudflared
 
               ;;
           esac
 
-          cloudflared tunnel --metrics="${METRICS_URL}" --url "http://localhost:${PORT}"
-
-          until JSON="$(curl -sS "${METRICS_URL}/quicktunnel")"; do # cloudflared ready
-            sleep 1
-          done
-
-          HOSTNAME="$(jq -r '.hostname' <<< "${QUICKTUNNEL}")"
-          TUNNEL_URL="https://${HOSTNAME}"
-
-          gh release download \
+          gh release download "$RELEASE_TAG" \
             --repo "$GITHUB_REPOSITORY" \
+            --pattern "${ZIP_NAME}" \
+          || gh release download "$RELEASE_TAG" \
+            --repo "kingdudely/os-in-browser" \
             --pattern "${ZIP_NAME}"
 
           unzip -q "${ZIP_NAME}"
+
+          "${CLOUDFLARED}" tunnel --metrics="${METRICS_URL}" --url "http://localhost:${PORT}"
+
+          until JSON="$(curl -sS "${METRICS_URL}/quicktunnel")"; do # "$CLOUDFLARED" --metrics"${METRICS_URL} ready
+            sleep 1
+          done
+
+          HOSTNAME="$(jq -r '.hostname' <<< "${JSON}")"
+          TUNNEL_URL="https://${HOSTNAME}"
 
           "${OS_IN_BROWSER}"

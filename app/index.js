@@ -16,8 +16,6 @@ const {
 	PORT
 } = process.env;
 
-const metricsPort = 8081;
-
 const github = new Octokit();
 
 const [owner, repo] = GITHUB_REPOSITORY.split("/");

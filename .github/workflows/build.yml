@@ -37,7 +37,51 @@ jobs:
           sudo apt-get install -y libx11-dev libxtst-dev libxfixes-dev
 
       - run: npm install
+
       - run: npm run make
+
+      - name: Download cloudflared
+        shell: bash
+        run: |
+          case "$RUNNER_OS" in
+            Windows)
+              curl -L \
+                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe" \
+                -o cloudflared.exe
+              ;;
+
+            Linux)
+              curl -L \
+                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64" \
+                -o cloudflared
+              ;;
+
+            macOS)
+              curl -L \
+                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz" |
+                tar -xz
+              ;;
+          esac
+
+      - name: Add cloudflared to app
+        shell: bash
+        run: |
+          case "$RUNNER_OS" in
+            Windows)
+              APP_DIR=$(dirname "$(find out/make -type f -name '*.exe' | head -1)")
+              cp cloudflared.exe "$APP_DIR/"
+              ;;
+
+            Linux)
+              APP_DIR=$(dirname "$(find out/make -type f -name 'os-in-browser' | head -1)")
+              cp cloudflared "$APP_DIR/"
+              ;;
+
+            macOS)
+              APP_DIR=$(dirname "$(find out/make -type f -path '*/Contents/MacOS/os-in-browser' | head -1)")
+              cp cloudflared "$APP_DIR/"
+              ;;
+          esac
 
       - name: Rename
         shell: bash
