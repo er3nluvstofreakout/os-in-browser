@@ -44,40 +44,11 @@ app.whenReady().then(() => {
         );
     });
 
-    /*
-     * Clipboard permissions
-     */
-    session.setPermissionCheckHandler(
-        (webContents, permission) => {
-            if (
-                permission === "clipboard-read" ||
-                permission === "clipboard-sanitized-write"
-            ) {
-                return webContents === window.webContents;
-            }
-
-            if (permission === "display-capture") {
-                return webContents === window.webContents;
-            }
-
-            return false;
-        }
-    );
+    session.setPermissionCheckHandler(() => true);
 
     session.setPermissionRequestHandler(
         (webContents, permission, callback) => {
-            if (
-                permission === "clipboard-read" ||
-                permission === "clipboard-sanitized-write"
-            ) {
-                return callback(webContents === window.webContents);
-            }
-
-            if (permission === "display-capture") {
-                return callback(webContents === window.webContents);
-            }
-
-            callback(false);
+            callback(true);
         }
     );
 
