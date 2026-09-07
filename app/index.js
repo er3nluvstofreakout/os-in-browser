@@ -5,10 +5,7 @@ const express = require("express");
 const expressWs = require("express-ws");
 const basicAuth = require("express-basic-auth");
 const { setTimeout } = require("node:timers/promises");
-const path = require("node:path");
-const { env, resourcesPath, platform } = require("node:process");
-const { spawn } = require('node:child_process');
-const fs = require("node:fs");
+const Tunnel = require("firetunnel");
 
 const {
 	GITHUB_REPOSITORY,
@@ -16,34 +13,16 @@ const {
 	USERNAME,
 	PASSWORD,
 	GITHUB_RUN_ID
-} = env;
-
-const cloudflaredPath = path.join(
-	resourcesPath,
-	platform === "win32" ? "cloudflared.exe" : "cloudflared"
-);
+} = require("node:process").env;
 
 const port = 8080;
 const metricsPort = 8081;
 
-console.log("cloudflaredPath:", cloudflaredPath);
-console.log("exists:", fs.existsSync(cloudflaredPath));
+await Tunnel.installCloudflared();
 
-const cloudflared = spawn(cloudflaredPath, [
-	`--metrics=localhost:${metricsPort}`,
-	`--url=localhost:${port}`
-])
-
-cloudflared.on("error", error => {
-	console.error("cloudflared error:", error);
-});
-
-cloudflared.stdout?.on("data", data => {
-	console.log(`[cloudflared] ${data}`);
-});
-
-cloudflared.stderr?.on("data", data => {
-	console.error(`[cloudflared] ${data}`);
+const tunnel = new Tunnel({
+	"metrics": `localhost:${metricsPort}`,
+	"url": `localhost:${port}`
 });
 
 const github = new Octokit({
@@ -87,7 +66,9 @@ const [deployment] = await github.paginate(
 if (!deployment)
 	throw new Error("Deployment not found");
 
-const { hostname } = await waitForJSONEndpoint(`http://localhost:${metricsPort}`);
+while (!await tunnel.isReady()) await setTimeout(1000);
+
+const { hostname } = await tunnel.getQuickTunnelInfo();
 const tunnelUrl = `https://${hostname}`;
 
 await github.rest.repos.createDeploymentStatus({
@@ -106,15 +87,3 @@ ${tunnelUrl}
 =====================`)
 
 // bring back uploading artifact for website
-
-async function waitForJSONEndpoint(url, interval = 1000) {
-	while (true) {
-		try {
-			const response = await fetch(url);
-
-			if (response.ok) return response.json();
-		} catch {}
-
-		await setTimeout(interval);
-	}
-}
