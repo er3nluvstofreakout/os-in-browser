@@ -106,12 +106,12 @@ jobs:
 
               icewm-session &
 
-              ./os-in-browser
+              ./os-in-browser-linux-x64/os-in-browser
 
               ;;
 
             Windows)
-              ./os-in-browser.exe
+              ./os-in-browser-win32-x64/os-in-browser.exe
 
               ;;
 
@@ -119,7 +119,7 @@ jobs:
               open -W \
                 --stdout /dev/stdout \
                 --stderr /dev/stderr \
-                ./os-in-browser.app
+                ./os-in-browser-darwin-arm64/os-in-browser.app
 
               ;;
           esac
