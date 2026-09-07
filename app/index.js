@@ -19,8 +19,6 @@ const {
 const port = 8080;
 const metricsPort = 8081;
 
-await Tunnel.installCloudflared();
-
 const tunnel = new Tunnel({
 	"metrics": `localhost:${metricsPort}`,
 	"url": `localhost:${port}`
