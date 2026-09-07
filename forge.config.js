@@ -1,10 +1,14 @@
-const cloudflared = process.platform === "win32"
-	? "cloudflared.exe"
-	: "cloudflared";
+const path = require("node:path");
+
+const cloudflared = {
+	linux: "cloudflared/linux",
+	win32: "cloudflared/windows.exe",
+	darwin: "cloudflared/macos"
+}[process.env.TARGET_PLATFORM];
 
 module.exports = {
 	packagerConfig: {
-		extraResource: [cloudflared]
+		extraResource: [path.join(__dirname, cloudflared)]
 	},
 
 	makers: [

@@ -5,8 +5,8 @@ on:
     inputs:
       version:
         description: Release version
-        type: string
         required: true
+        type: string
 
 permissions:
   contents: write
@@ -17,76 +17,88 @@ defaults:
 
 jobs:
   build:
-    name: ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os:
-          - windows-latest
-          - ubuntu-latest
-          - macos-latest
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout
+        uses: actions/checkout@v7
 
-      - name: Install Linux dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libx11-dev libxtst-dev libxfixes-dev
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
 
       - name: Install dependencies
         run: npm install
 
       - name: Download cloudflared
         run: |
-          case "$RUNNER_OS" in
-            Windows)
-              curl -fsSL \
-                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe" \
-                -o cloudflared.exe
-              ;;
+          mkdir -p cloudflared
 
-            Linux)
-              curl -fsSL \
-                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64" \
-                -o cloudflared
-              ;;
+          curl -fsSL \
+            "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64" \
+            -o cloudflared/linux
 
-            macOS)
-              curl -fsSL \
-                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz" |
-                tar -xz
-              ;;
-          esac
+          curl -fsSL \
+            "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe" \
+            -o cloudflared/windows.exe
 
-      - name: Make
-        run: npm run make
+          curl -fsSL \
+            "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz" |
+            tar -xz -C cloudflared
 
-      - name: Rename
+          mv cloudflared/cloudflared cloudflared/macos
+
+          chmod +x cloudflared/linux
+          chmod +x cloudflared/macos
+
+      - name: Build all platforms
         run: |
-          mv out/make/zip/*/*/*.zip \
-            "${RUNNER_OS}-${RUNNER_ARCH}.zip"
+          (
+            TARGET_PLATFORM=linux \
+            npm run make -- --platform=linux --arch=x64
+          ) &
+          linux_pid=$!
 
-      - uses: actions/upload-artifact@v7
+          (
+            TARGET_PLATFORM=win32 \
+            npm run make -- --platform=win32 --arch=x64
+          ) &
+          windows_pid=$!
+
+          (
+            TARGET_PLATFORM=darwin \
+            npm run make -- --platform=darwin --arch=arm64
+          ) &
+          macos_pid=$!
+
+          failed=0
+
+          wait "$linux_pid" || failed=1
+          wait "$windows_pid" || failed=1
+          wait "$macos_pid" || failed=1
+
+          exit "$failed"
+
+      - name: Show build output
+        run: |
+          find out -type f -name '*.zip' -print
+
+      - name: Prepare releases
+        run: |
+          mkdir -p releases
+
+          find out/make/zip -type f -name '*.zip' -exec cp {} releases/ \;
+
+          ls -lh releases
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
         with:
-          name: ${{ runner.os }}-${{ runner.arch }}
-          path: ${{ runner.os }}-${{ runner.arch }}.zip
+          name: releases
+          path: releases/*.zip
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/download-artifact@v8
-        with:
-          path: releases
-          merge-multiple: true
-
-      - name: Release
+      - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
