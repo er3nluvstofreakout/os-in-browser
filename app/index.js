@@ -7,7 +7,7 @@ const basicAuth = require("express-basic-auth");
 const { setTimeout } = require("node:timers/promises");
 const path = require("node:path");
 const process = require("node:process");
-const app = require("electron");
+const { app } = require("electron");
 
 const {
 	GITHUB_REPOSITORY,
@@ -36,10 +36,10 @@ const github = new Octokit();
 
 const [owner, repo] = GITHUB_REPOSITORY.split("/");
 
-const app = express();
-expressWs(app);
+const server = express();
+expressWs(server);
 
-app.use(
+server.use(
 	basicAuth({
 		users: {
 			[USERNAME]: PASSWORD
@@ -48,11 +48,11 @@ app.use(
 	})
 );
 
-app.use(express.static("./public"));
+server.use(express.static("./public"));
 
-app.ws("/", (ws, req) => new ServerPeer(ws));
+server.ws("/", (ws, req) => new ServerPeer(ws));
 
-app.listen(port, () => {
+server.listen(port, () => {
 	console.log(`Server listening on port ${port}`);
 });
 
