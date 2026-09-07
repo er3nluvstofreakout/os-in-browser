@@ -43,28 +43,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Download cloudflared
-        run: |
-          case "$RUNNER_OS" in
-            Windows)
-              curl -fsSL \
-                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe" \
-                -o cloudflared.exe
-              ;;
-
-            Linux)
-              curl -fsSL \
-                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64" \
-                -o cloudflared
-              ;;
-
-            macOS)
-              curl -fsSL \
-                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz" |
-                tar -xz
-              ;;
-          esac
-
       - name: Make
         run: npm run make
 
