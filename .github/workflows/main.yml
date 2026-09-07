@@ -114,7 +114,10 @@ jobs:
               ;;
 
             macOS)
-              open -W ./os-in-browser.app
+              open -W \
+                --stdout /dev/stdout \
+                --stderr /dev/stderr \
+                ./os-in-browser.app
 
               ;;
           esac
