@@ -51,27 +51,18 @@ app.whenReady().then(() => {
     /*
      * navigator.mediaDevices.getDisplayMedia()
      */
-    session.setDisplayMediaRequestHandler(async (request, callback) => {
-        if (request.frame?.webContents !== window.webContents) {
-            return callback({});
-        }
-
-        try {
-            const sources = await desktopCapturer.getSources({
-                types: ["screen"]
-            });
-
-            if (!sources.length) {
-                return callback({});
-            }
-
-            callback({
-                video: sources[0]
-            });
-        } catch (error) {
-            console.error("[renderer] display capture error:", error);
-            callback({});
-        }
+    session.setDisplayMediaRequestHandler((request, callback) => {
+        desktopCapturer.getSources({
+            types: ["screen"]
+        })
+            .then(([source]) => {
+                if (source) {
+                    callback({ video: source });
+                } else {
+                    callback({});
+                }
+            })
+            .catch(() => callback({}));
     });
 
     /*
