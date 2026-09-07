@@ -30,7 +30,11 @@ spawn(cloudflaredPath, [
 	`--url=localhost:${port}`
 ])
 
-const github = new Octokit();
+const github = new Octokit({
+	request: {
+		fetch
+	}
+});
 
 const [owner, repo] = GITHUB_REPOSITORY.split("/");
 
