@@ -5,7 +5,6 @@ const express = require("express");
 const expressWs = require("express-ws");
 const basicAuth = require("express-basic-auth");
 const { setTimeout } = require("node:timers/promises");
-const Tunnel = require("firetunnel");
 const path = require("node:path");
 
 const {
@@ -13,16 +12,10 @@ const {
 	GITHUB_SHA,
 	USERNAME,
 	PASSWORD,
-	GITHUB_RUN_ID
+	GITHUB_RUN_ID,
+	PORT,
+	TUNNEL_URL
 } = require("node:process").env;
-
-const port = 8080;
-const metricsPort = 8081;
-
-const tunnel = new Tunnel({
-	"metrics": `localhost:${metricsPort}`,
-	"url": `localhost:${port}`
-});
 
 const github = new Octokit({
 	request: {
@@ -48,8 +41,8 @@ server.use(express.static(path.join(__dirname, "public")));
 
 server.ws("/", (ws, req) => new ServerPeer(ws));
 
-server.listen(port, () => {
-	console.log(`Server listening on port ${port}`);
+server.listen(PORT, () => {
+	console.log(`Server listening on port ${PORT}`);
 });
 
 const [deployment] = await github.paginate(
@@ -65,11 +58,6 @@ const [deployment] = await github.paginate(
 if (!deployment)
 	throw new Error("Deployment not found");
 
-while (!await tunnel.isReady()) await setTimeout(1000);
-
-const { hostname } = await tunnel.getQuickTunnelInfo();
-const tunnelUrl = `https://${hostname}`;
-
 await github.rest.repos.createDeploymentStatus({
 	owner,
 	repo,
@@ -77,12 +65,12 @@ await github.rest.repos.createDeploymentStatus({
 	deployment_id: deployment.id,
 	state: "in_progress",
 	description: "Remote desktop ready",
-	environment_url: tunnelUrl
+	environment_url: TUNNEL_URL
 });
 
 console.log(`=====================
 YOUR URL IS:
-${tunnelUrl}
+${TUNNEL_URL}
 =====================`)
 
 // bring back uploading artifact for website
