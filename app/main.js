@@ -4,8 +4,6 @@ const {
     desktopCapturer
 } = require("electron");
 
-const path = require("node:path");
-
 app.whenReady().then(() => {
     const window = new BrowserWindow({
         width: 1280,
@@ -81,9 +79,7 @@ app.whenReady().then(() => {
         })
     })
 
-    window.loadFile(
-        path.join(app.getAppPath(), "index.html")
-    )
+    window.loadFile("app/index.html");
 })
 
 app.on("window-all-closed", () => app.quit());
