@@ -1,6 +1,6 @@
 console.log("1");
 
-const nativeApis = require("../build/Release/native-apis.node");
+const nativeApis = require("native-apis");
 console.log("2");
 
 const stream = await navigator.mediaDevices.getDisplayMedia({
