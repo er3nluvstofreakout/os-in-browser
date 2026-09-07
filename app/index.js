@@ -7,6 +7,7 @@ const basicAuth = require("express-basic-auth");
 const { setTimeout } = require("node:timers/promises");
 const path = require("node:path");
 const process = require("node:process");
+const app = require("electron");
 
 const {
 	GITHUB_REPOSITORY,
@@ -17,14 +18,14 @@ const {
 } = process.env;
 
 const cloudflaredPath = path.join(
-	process.resourcesPath,
-	process.platform === "win32"
-		? "cloudflared.exe"
-		: "cloudflared"
+    app.getAppPath(),
+    process.platform === "win32"
+        ? "cloudflared.exe"
+        : "cloudflared"
 );
 
 const port = 8080;
-const metricsPort = "localhost:";
+const metricsPort = 8081;
 
 spawn(cloudflaredPath, [
 	`--metrics=localhost:${metricsPort}`,
