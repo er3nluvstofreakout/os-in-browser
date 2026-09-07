@@ -13,14 +13,39 @@ app.whenReady().then(() => {
             nodeIntegration: true,
             contextIsolation: false
         }
-    })
+    });
 
     const { session } = window.webContents;
 
     /*
+     * Forward renderer console messages to the main process.
+     */
+    window.webContents.on("console-message", (event, level, message, line, sourceId) => {
+        const levels = [
+            "debug",
+            "info",
+            "warning",
+            "error"
+        ];
+
+        console.log(
+            `[renderer:${levels[level] ?? level}] ${message}` +
+            ` (${sourceId}:${line})`
+        );
+    });
+
+    /*
+     * Forward renderer uncaught exceptions.
+     */
+    window.webContents.on("render-process-gone", (event, details) => {
+        console.error(
+            `[renderer] process gone: ${details.reason}` +
+            ` (exitCode=${details.exitCode})`
+        );
+    });
+
+    /*
      * Clipboard permissions
-     *
-     * Only this BrowserWindow's session gets these permissions.
      */
     session.setPermissionCheckHandler(
         (webContents, permission) => {
@@ -28,16 +53,16 @@ app.whenReady().then(() => {
                 permission === "clipboard-read" ||
                 permission === "clipboard-sanitized-write"
             ) {
-                return webContents === window.webContents
+                return webContents === window.webContents;
             }
 
             if (permission === "display-capture") {
-                return webContents === window.webContents
+                return webContents === window.webContents;
             }
 
-            return false
+            return false;
         }
-    )
+    );
 
     session.setPermissionRequestHandler(
         (webContents, permission, callback) => {
@@ -45,41 +70,47 @@ app.whenReady().then(() => {
                 permission === "clipboard-read" ||
                 permission === "clipboard-sanitized-write"
             ) {
-                return callback(webContents === window.webContents)
+                return callback(webContents === window.webContents);
             }
 
             if (permission === "display-capture") {
-                return callback(webContents === window.webContents)
+                return callback(webContents === window.webContents);
             }
 
-            callback(false)
+            callback(false);
         }
-    )
+    );
 
     /*
      * navigator.mediaDevices.getDisplayMedia()
-     *
-     * This handler belongs ONLY to this BrowserWindow's session.
      */
     session.setDisplayMediaRequestHandler(async (request, callback) => {
         if (request.frame?.webContents !== window.webContents) {
-            return callback({})
+            return callback({});
         }
 
-        const sources = await desktopCapturer.getSources({
-            types: ["screen"]
-        })
+        try {
+            const sources = await desktopCapturer.getSources({
+                types: ["screen"]
+            });
 
-        if (!sources.length) {
-            return callback({})
+            if (!sources.length) {
+                return callback({});
+            }
+
+            callback({
+                video: sources[0]
+            });
+        } catch (error) {
+            console.error("[renderer] display capture error:", error);
+            callback({});
         }
+    });
 
-        callback({
-            video: sources[0]
-        })
-    })
-
+    /*
+     * Load renderer.
+     */
     window.loadFile("app/index.html");
-})
+});
 
 app.on("window-all-closed", () => app.quit());
