@@ -6,6 +6,7 @@ const expressWs = require("express-ws");
 const basicAuth = require("express-basic-auth");
 const { setTimeout } = require("node:timers/promises");
 const Tunnel = require("firetunnel");
+const path = require("node:path");
 
 const {
 	GITHUB_REPOSITORY,
@@ -45,7 +46,7 @@ server.use(
 	})
 );
 
-server.use(express.static("./public"));
+server.use(express.static(path.join(__dirname, "public")));
 
 server.ws("/", (ws, req) => new ServerPeer(ws));
 
