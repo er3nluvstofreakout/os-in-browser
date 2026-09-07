@@ -65,6 +65,7 @@ jobs:
 
       - name: Add cloudflared
         run: |
+          find out/make -type f | head -20
           APP_DIR=$(dirname "$(find out/make -type f \( -name '*.exe' -o -name 'os-in-browser' \) | head -1)")
           cp cloudflared* "$APP_DIR/"
 
