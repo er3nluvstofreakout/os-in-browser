@@ -44,9 +44,9 @@ app.whenReady().then(() => {
         );
     });
 
-    session.setPermissionCheckHandler(() => true);
+    // session.setPermissionCheckHandler(() => true);
 
-    session.setPermissionRequestHandler((webContents, permission, callback) => callback(true));
+    // session.setPermissionRequestHandler((webContents, permission, callback) => callback(true));
 
     /*
      * navigator.mediaDevices.getDisplayMedia()

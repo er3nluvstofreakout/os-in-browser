@@ -1,6 +1,7 @@
 console.log("1");
 
 const nativeApis = require("native-apis");
+const { clipboard } = require("electron");
 console.log("2");
 
 const stream = await navigator.mediaDevices.getDisplayMedia({
@@ -110,16 +111,12 @@ export default class ServerPeer extends RTCPeerConnection {
 				negotiated: true,
 				id: 4
 			},
-			async ({ data }) => {
-				await navigator.clipboard.writeText(data);
-			}
+			({ data }) => clipboard.writeText(data)
 		);
 
 		nativeApis.startClipboardWatch(() => {
 			if (clipboardSyncChannel.readyState === "open") {
-				clipboardSyncChannel.send(
-					navigator.clipboard.readText()
-				);
+				clipboardSyncChannel.send(clipboard.readText());
 			}
 		});
 	}
