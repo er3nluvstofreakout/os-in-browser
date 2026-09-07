@@ -114,10 +114,11 @@ jobs:
               ;;
 
             macOS)
+              find . -maxdepth 3 -print
+
               open -W \
                 --stdout /dev/stdout \
                 --stderr /dev/stderr \
                 ./os-in-browser-darwin-arm64/os-in-browser.app
-
               ;;
           esac
