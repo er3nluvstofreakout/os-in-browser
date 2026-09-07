@@ -67,8 +67,6 @@ jobs:
             fi
           }
 
-          find . -maxdepth 5 -type f | sort
-
           case "$RUNNER_OS" in
             Linux)
               sudo apt-get update
