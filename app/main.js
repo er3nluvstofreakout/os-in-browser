@@ -15,12 +15,13 @@ app.whenReady().then(() => {
         }
     });
 
-    const { session } = window.webContents;
+    const { webContents } = window;
+    const { session } = webContents;
 
     /*
      * Forward renderer console messages to the main process.
      */
-    window.webContents.on("console-message", (event, level, message, line, sourceId) => {
+    webContents.on("console-message", (event, level, message, line, sourceId) => {
         const levels = [
             "debug",
             "info",
@@ -37,17 +38,15 @@ app.whenReady().then(() => {
     /*
      * Forward renderer uncaught exceptions.
      */
-    window.webContents.on("render-process-gone", (event, details) => {
+    webContents.on("render-process-gone", (event, details) => {
         console.error(
             `[renderer] process gone: ${details.reason}` +
             ` (exitCode=${details.exitCode})`
         );
     });
 
-    // session.setPermissionCheckHandler(() => true);
-
-    // session.setPermissionRequestHandler((webContents, permission, callback) => callback(true));
-
+    session.setPermissionCheckHandler((webContents, permission, requestingOrigin) => (permission === "clipboard-read" || permission === "clipboard-sanitized-write"));
+    session.setPermissionRequestHandler((webContents, permission, callback) => callback(permission === "clipboard-read" || permission === "clipboard-sanitized-write"));
     /*
      * navigator.mediaDevices.getDisplayMedia()
      */
