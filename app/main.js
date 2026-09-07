@@ -82,7 +82,7 @@ app.whenReady().then(() => {
     })
 
     window.loadFile(
-        path.join(__dirname, "../app/index.html")
+        path.join(app.getAppPath(), "index.html")
     )
 })
 

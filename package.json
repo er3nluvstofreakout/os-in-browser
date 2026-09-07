@@ -2,7 +2,7 @@
 	"name": "os-in-browser",
 	"version": "1.0.0",
 	"description": "OS in Browser",
-	"main": "index.js",
+	"main": "app/main.js",
 	"type": "commonjs",
 	"scripts": {
 		"start": "electron-forge start",
