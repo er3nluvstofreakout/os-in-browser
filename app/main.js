@@ -45,6 +45,24 @@ app.whenReady().then(() => {
         );
     });
 
+    /* By default, Electron allows all permissions.
+    session.setPermissionCheckHandler(
+        (webContents, permission) =>
+            permission === "clipboard-read" ||
+            permission === "clipboard-sanitized-write" ||
+            permission === "display-capture"
+    );
+
+    session.setPermissionRequestHandler(
+        (webContents, permission, callback) =>
+            callback(
+                permission === "clipboard-read" ||
+                permission === "clipboard-sanitized-write" ||
+                permission === "display-capture"
+            )
+    );
+    */
+
     /*
      * navigator.mediaDevices.getDisplayMedia()
      */
