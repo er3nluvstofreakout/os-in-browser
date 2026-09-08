@@ -8,8 +8,8 @@ window.addEventListener("error", (event) => {
 });
 
 window.addEventListener("unhandledrejection", (event) => {
-    const asyncErrorMessage = event.reason?.message || event.reason || "Unknown async error occurred";
-    window.alert(`Async error:\n${asyncErrorMessage}`);
+    console.warn("Async error:", event.reason);
+    event.preventDefault();
 });
 
 import ClientPeer from "./ClientPeer.js";
