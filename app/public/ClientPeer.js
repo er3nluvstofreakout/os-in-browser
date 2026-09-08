@@ -229,7 +229,7 @@ function onKeyButtonEvent(isDown, event) {
 	if (keyboardTypeChannel?.readyState !== "open" || event.repeat) return;
 	event.preventDefault();
 
-	if (isDown) triggerImmersiveMode();
+	if (isDown && navigator.maxTouchPoints === 0) triggerImmersiveMode();
 
 	if (!(event.code in codeMap)) {
 		console.error(`"${event.code}" does not have a corresponding value in code-map.json`);
