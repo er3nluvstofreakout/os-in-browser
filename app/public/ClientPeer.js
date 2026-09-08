@@ -271,7 +271,8 @@ async function requestUntilSupported(element, methodName, optionsList) {
 }
 
 async function triggerImmersiveMode() {
-	if (!document.hasFocus()) return;
+	return;
+}
 
 	syncClipboard(); // maybe add check to see if they have onclipboardchange or not?
 
