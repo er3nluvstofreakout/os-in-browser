@@ -77,13 +77,17 @@ jobs:
 
           chmod +x "$CLOUDFLARED"
 
-          "$CLOUDFLARED" tunnel --url "http://localhost:$PORT" >"${CLOUDFLARED_LOG}" 2>&1 &
-          CLOUDFLARED_PID=$!
+          "$CLOUDFLARED" tunnel \
+            --url "http://localhost:$PORT" \
+            >"$CLOUDFLARED_LOG" 2>&1 &
 
+          CLOUDFLARED_PID=$!
           trap 'kill "$CLOUDFLARED_PID" 2>/dev/null || true' EXIT
 
-          TUNNEL_URL="$(tail -f "${CLOUDFLARED_LOG}" | grep -m1 -oE 'https://[a-z0-9-]+\.trycloudflare\.com')"
-          export TUNNEL_URL
+          export TUNNEL_URL="$(
+            tail -f "$CLOUDFLARED_LOG" |
+              grep --line-buffered -m1 -oE 'https://[a-z0-9-]+\.trycloudflare\.com'
+          )"
 
           export USERNAME="$(jq -r '.inputs.username // ""' "$GITHUB_EVENT_PATH")"
           echo "::add-mask::$USERNAME"
