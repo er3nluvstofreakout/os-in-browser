@@ -16,7 +16,7 @@
 		"native-apis": "^1.0.6"
 	},
 	"devDependencies": {
-		"electron": "^44.2.0",
+		"electron": "^43.6.0",
 		"@electron-forge/cli": "^7.11.2",
 		"@electron-forge/maker-zip": "^7.11.2"
 	}
