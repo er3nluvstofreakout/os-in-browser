@@ -40,60 +40,81 @@ jobs:
       contents: read
       deployments: write
 
+    env:
+      PORT: 8080
+
     steps:
-      - name: Run remote desktop
+      - name: Start tunnel
+        id: tunnel
         env:
-          GH_TOKEN: ${{ github.token }}
-          GITHUB_TOKEN: ${{ github.token }}
-          PORT: 8080
           METRICS_URL: "localhost:8081"
-          CLOUDFLARED_LOG: "${{ runner.temp }}/cloudflared.log"
         run: |
           case "$RUNNER_OS" in
             Windows)
               CLOUDFLARED=./cloudflared.exe
-              ZIP_NAME="os-in-browser-win32-x64-1.0.0.zip"
-              CLOUDFLARED_URL="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe"
+
+              curl -fsSL \
+                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe" \
+                -o "${CLOUDFLARED}"
               ;;
 
             Linux)
               CLOUDFLARED=./cloudflared
-              ZIP_NAME="os-in-browser-linux-x64-1.0.0.zip"
-              CLOUDFLARED_URL="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64"
+
+              curl -fsSL \
+                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64" \
+                -o "${CLOUDFLARED}"
               ;;
 
             macOS)
               CLOUDFLARED=./cloudflared
-              ZIP_NAME="os-in-browser-darwin-arm64-1.0.0.zip"
-              CLOUDFLARED_URL="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz"
+
+              curl -fsSL \
+                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz" |
+                tar -xz
               ;;
           esac
 
-          if [[ "$RUNNER_OS" == macOS ]]; then
-            curl -fsSL "$CLOUDFLARED_URL" | tar -xz
-          else
-            curl -fsSL "$CLOUDFLARED_URL" -o "$CLOUDFLARED"
-          fi
+          chmod +x "${CLOUDFLARED}"
 
-          chmod +x "$CLOUDFLARED"
+          "${CLOUDFLARED}" tunnel \
+            --metrics="${METRICS_URL}" \
+            --url "http://localhost:${PORT}" &
 
-          "$CLOUDFLARED" tunnel \
-            --url "http://localhost:$PORT" \
-            >"$CLOUDFLARED_LOG" 2>&1 &
+          until JSON="$(curl -sS "${METRICS_URL}/quicktunnel")"; do
+            sleep 0.1
+          done
 
-          CLOUDFLARED_PID=$!
-          trap 'kill "$CLOUDFLARED_PID" 2>/dev/null || true' EXIT
+          HOSTNAME="$(jq -r '.hostname' <<< "${JSON}")"
+          TUNNEL_URL="https://${HOSTNAME}"
 
-          export TUNNEL_URL="$(
-            tail -f "$CLOUDFLARED_LOG" |
-              grep --line-buffered -m1 -oE 'https://[a-z0-9-]+\.trycloudflare\.com'
-          )"
+          echo "url=${TUNNEL_URL}" >> "$GITHUB_OUTPUT"
 
-          export USERNAME="$(jq -r '.inputs.username // ""' "$GITHUB_EVENT_PATH")"
-          echo "::add-mask::$USERNAME"
+      - name: Run remote desktop
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          TUNNEL_URL: ${{ steps.tunnel.outputs.url }}
+        run: |
+          export USERNAME=$(jq -r '.inputs.username // ""' "$GITHUB_EVENT_PATH")
+          echo "::add-mask::${USERNAME}"
 
-          export PASSWORD="$(jq -r '.inputs.password // ""' "$GITHUB_EVENT_PATH")"
-          echo "::add-mask::$PASSWORD"
+          export PASSWORD=$(jq -r '.inputs.password // ""' "$GITHUB_EVENT_PATH")
+          echo "::add-mask::${PASSWORD}"
+
+          case "$RUNNER_OS" in
+            Linux)
+              ZIP_NAME="os-in-browser-linux-x64-1.0.0.zip"
+              ;;
+
+            Windows)
+              ZIP_NAME="os-in-browser-win32-x64-1.0.0.zip"
+              ;;
+
+            macOS)
+              ZIP_NAME="os-in-browser-darwin-arm64-1.0.0.zip"
+              ;;
+          esac
 
           gh release download \
             --repo "$GITHUB_REPOSITORY" \
@@ -134,10 +155,12 @@ jobs:
               icewm-session &
 
               ./os-in-browser-linux-x64/os-in-browser
+
               ;;
 
             Windows)
               ./os-in-browser-win32-x64/os-in-browser.exe
+
               ;;
 
             macOS)
