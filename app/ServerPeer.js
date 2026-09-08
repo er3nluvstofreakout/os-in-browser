@@ -1,14 +1,9 @@
-console.log("1");
-
 const nativeApis = require("native-apis");
-console.log("2");
 
 const stream = await navigator.mediaDevices.getDisplayMedia({
 	video: true,
 	audio: false
 });
-
-console.log("3");
 
 export default class ServerPeer extends RTCPeerConnection {
 	static #Init = {

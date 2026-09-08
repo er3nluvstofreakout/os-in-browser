@@ -41,9 +41,9 @@ server.use(express.static(path.join(__dirname, "public")));
 
 server.ws("/", (ws, req) => new ServerPeer(ws));
 
-server.listen(PORT, () => {
+server.listen(PORT/* , () => {
 	console.log(`Server listening on port ${PORT}`);
-});
+}*/);
 
 const [deployment] = await github.paginate(
 	github.rest.repos.listDeployments,
@@ -68,9 +68,13 @@ await github.rest.repos.createDeploymentStatus({
 	environment_url: TUNNEL_URL
 });
 
-console.log(`=====================
+console.log(`
+	
+==========================
 YOUR URL IS:
 ${TUNNEL_URL}
-=====================`)
+==========================
+
+`);
 
 // bring back uploading artifact for website
