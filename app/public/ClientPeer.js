@@ -273,30 +273,6 @@ async function requestUntilSupported(element, methodName, optionsList) {
 async function triggerImmersiveMode() {
 	return;
 }
-
-	syncClipboard(); // maybe add check to see if they have onclipboardchange or not?
-
-	if (!document.pointerLockElement && "requestPointerLock" in Element.prototype) {
-		await requestUntilSupported(document.documentElement, "requestPointerLock", [
-			{ unadjustedMovement: true },
-			{}
-		])
-	}
-
-	if (document.fullscreenEnabled && !document.fullscreenElement && "requestFullscreen" in Element.prototype) {
-		await requestUntilSupported(document.documentElement, "requestFullscreen", [
-			{
-				navigationUI: "hide",
-				keyboardLock: "browser"
-			},
-			{
-				navigationUI: "hide"
-			},
-			{}
-		])
-	}
-}
-
 async function syncClipboard() {
 	if (clipboardSyncChannel?.readyState !== "open" || !document.hasFocus() || typeof(navigator.clipboard?.readText) !== "function") return;
 
