@@ -154,7 +154,7 @@ jobs:
 
               icewm-session &
 
-              ./os-in-browser-linux-x64/os-in-browser
+              ./os-in-browser-linux-x64/os-in-browser --no-sandbox
 
               ;;
 
