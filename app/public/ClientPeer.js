@@ -299,7 +299,14 @@ async function triggerImmersiveMode() {
 async function syncClipboard() {
 	if (clipboardSyncChannel?.readyState !== "open" || !document.hasFocus() || typeof(navigator.clipboard?.readText) !== "function") return;
 
-	const currentClipboardValue = await navigator.clipboard.readText();
+	let currentClipboardValue;
+
+try {
+    currentClipboardValue = await navigator.clipboard.readText();
+} catch (error) {
+    console.warn("Clipboard read unavailable:", error);
+    return;
+}
 	if (typeof(currentClipboardValue) === "string" && currentClipboardValue !== lastClipboardValue) {
 		lastClipboardValue = currentClipboardValue;
 		clipboardSyncChannel.send(currentClipboardValue);
