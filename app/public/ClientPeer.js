@@ -218,7 +218,7 @@ function onPointerButtonEvent(isDown, event) {
 	if (pointerClickChannel?.readyState !== "open") return;
 	event.preventDefault();
 
-	if (isDown) triggerImmersiveMode();
+	if (isDown && navigator.maxTouchPoints === 0) triggerImmersiveMode();
 
 	sharedView.setUint8(0, isDown ? 1 : 0); // isDown
 	sharedView.setUint8(1, event.button);
